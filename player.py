@@ -12,22 +12,21 @@ class Player:
         self.won_pieces = []
 
     def get_available_moves(self, position):
-        piece_code = self.board[position[0]][position[1]]
-        if not piece_code:
+        if not self.board.get_piece(position):
             return []
-        if piece_code[1] != self.color:
+        if self.board.get_color(position) != self.color:
             return []
         # Movimientos disponibles para el peón seleccionado
-        if piece_code[-1] == "P":
-            return self.get_pawn_moves(position, piece_code)
-        return
+        if self.board.is_pawn(position):
+            return self.get_pawn_moves(position)
+        return []
 
     def get_all_available_moves(self):
         pass
 
-    def get_pawn_moves(self, position, piece_code):
+    def get_pawn_moves(self, position):
         # Dirección de avance del peón
-        sign = 1 if piece_code[1] == "b" else -1
+        sign = 1 if self.board.get_color(position) == "b" else -1
         moves = []
         # Avanzar una casilla
         if self._check_available_square([position[0] + sign, position[1]]):
@@ -35,10 +34,10 @@ class Player:
             # Avanzar dos casillas
             if (
                 self._check_available_square([position[0] + sign * 2, position[1]])
-                and piece_code not in self.moved_pawns
+                and self.board.get_piece(position) not in self.moved_pawns
             ):
                 moves.append([position[0] + sign * 2, position[1]])
-        # Comer una ficha 
+        # Comer una ficha en diagonal
         if self._check_available_square([position[0] + sign, position[1] + 1], True):
             moves.append([position[0] + sign, position[1] + 1])
         if self._check_available_square([position[0] + sign, position[1] - 1], True):
@@ -49,11 +48,13 @@ class Player:
         # Si esta vacia:
             # Si es un peón comiendo --> False
             # Otro caso --> True
-        if not self.board[pos[0]][pos[1]]:
+        if not self.board.get_piece(pos):
             if is_pawn_eating:
                 return False
             return True
         # Si no esta vacia:
             # Si es un peón no comiendo --> False
             # Otro caso: color de la casilla que se quiere ocupar vs self.color
-        return self.board[pos[0]][pos[1]][1] != self.color 
+        if not is_pawn_eating:
+            return False
+        return self.board.get_color(pos) != self.color 

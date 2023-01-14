@@ -1,6 +1,7 @@
 import pygame
 from tools import *
 from player import Player
+from board import Board
 import time
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
@@ -16,7 +17,7 @@ class Chess:
 
         # Data
         self.pieces = import_images()
-        self.board = BOARD
+        self.board = Board()
         self.players = {
             0: Player(self.board, "w"),
             1: Player(self.board, "b"),
@@ -61,7 +62,7 @@ class Chess:
                 # Movimientos permitidos del jugador para la pieza seleccionada
                 available_moves = player.get_available_moves(self.pressed_piece)
 
-                if self.is_change_piece(player, curr_pos):
+                if not self.board.are_enemy_pieces(self.pressed_piece, curr_pos):
                     self.pressed_piece = curr_pos
 
                 # Esta casilla es la misma que habia o no es valida? 
@@ -77,7 +78,7 @@ class Chess:
             
             # Si la casilla está en blanco no se guarda la posición
             elif (
-                not self.board[curr_pos[0]][curr_pos[1]]
+                not self.board.get_piece(curr_pos)
             ):
                 self.pressed_piece = None
             else:
@@ -88,15 +89,14 @@ class Chess:
 
     def end_move(self, start, end):
         player = self.get_current_player()
-        if self.board[end[0]][end[1]]:
-            player.won_pieces.append(self.board[end[0]][end[1]])
-        if self.board[start[0]][start[1]] and self.board[start[0]][start[1]][2] == "P":
-            player.moved_pawns.append(self.board[start[0]][start[1]])
+        if self.board.get_piece(end):
+            player.won_pieces.append(self.board.get_piece(end))
+        if self.board.is_pawn(start):
+            player.moved_pawns.append(self.board.get_piece(start))
 
         # Si el movimiento es valido se cambia la posición
         # Se termina la ronda y se despulsa la pieza
-        self.board[end[0]][end[1]] = self.board[start[0]][start[1]]
-        self.board[start[0]][start[1]] = ""
+        self.board.move_piece(start, end)
         self.pressed_piece = None
         self.round += 1
 
@@ -110,35 +110,15 @@ class Chess:
         return piece_code[1] == player.color
 
     def draw(self):
-        self.draw_board()
-            
-    # Dibujar el fondo del tablero y las piezas.
-    def draw_board(self):
-        x = 0
-        y = 0
-        switch = True # Variable para alternar el color de las casillas.
-        for row in self.board:
-            for col in row:
-                color = WHITE_SQUARE if switch else GREEN
-                pygame.draw.rect(self.screen, color, (x, y, SQUARE_SIZE, SQUARE_SIZE))
-                if col:
-                    self.screen.blit(self.pieces[col[1:3]], (x + 5, y + 5))
-                # Si hay alguna pieza seleccionada se muestran los movimientos disponibles
-                if self.pressed_piece:
-                    player = self.get_current_player()
-                    if [x // SQUARE_SIZE, y // SQUARE_SIZE] in player.get_available_moves(self.pressed_piece):
-                        pygame.draw.circle(
-                            self.surface, 
-                            GREY2, 
-                            (y + SQUARE_SIZE / 2, x + SQUARE_SIZE / 2), 
-                            15
-                        )
-                x += SQUARE_SIZE
-                switch = not switch
-            # Al cambiar de fila se repite el color.
-            switch = not switch
-            x = 0
-            y += SQUARE_SIZE
+        self.board.draw_board(
+            {
+                "screen": self.screen,
+                "pieces": self.pieces,
+                "pressed_piece": self.pressed_piece,
+                "surface": self.surface,
+                "player": self.get_current_player(),
+            }
+        )
     
     def draw_valid_moves(self):
         pass
