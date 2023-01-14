@@ -42,6 +42,7 @@ class Chess:
             pygame.draw.rect(self.screen, GREY, (800, 0, 400, 800))
             self.screen.blit(self.surface, (0, 0))
             pygame.display.update()
+            # time.sleep(.2)
 
     def player_move_manager(self):
         mouse_buttons = pygame.mouse.get_pressed()
@@ -86,6 +87,12 @@ class Chess:
             self.pressed = False 
 
     def end_move(self, start, end):
+        player = self.get_current_player()
+        if self.board[end[0]][end[1]]:
+            player.won_pieces.append(self.board[end[0]][end[1]])
+        if self.board[start[0]][start[1]] and self.board[start[0]][start[1]][2] == "P":
+            player.moved_pawns.append(self.board[start[0]][start[1]])
+
         # Si el movimiento es valido se cambia la posición
         # Se termina la ronda y se despulsa la pieza
         self.board[end[0]][end[1]] = self.board[start[0]][start[1]]
