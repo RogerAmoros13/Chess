@@ -2,6 +2,7 @@ import pygame
 from tools import *
 from player import Player
 from board import Board
+from leader import Leader
 import time
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
@@ -14,6 +15,7 @@ class Chess:
         self.surface = pygame.Surface(SIZE)
         self.surface.set_colorkey((0, 0, 0))
         self.surface.set_alpha(100)
+        self.leader = Leader(self.screen)
 
         # Data
         self.pieces = import_images()
@@ -40,10 +42,7 @@ class Chess:
             self.surface.fill(BLACK)
             self.player_move_manager()
             self.draw()
-            pygame.draw.rect(self.screen, GREY, (800, 0, 400, 800))
-            self.screen.blit(self.surface, (0, 0))
-            pygame.display.update()
-            # time.sleep(.2)
+            self.update()
 
     def player_move_manager(self):
         mouse_buttons = pygame.mouse.get_pressed()
@@ -104,12 +103,6 @@ class Chess:
     def get_current_player(self):
         return self.players.get(self.round % 2)
 
-    def is_change_piece(self, player, pos):
-        piece_code = self.board[pos[0]][pos[1]]
-        if not piece_code:
-            return False
-        return piece_code[1] == player.color
-
     def draw(self):
         self.board.draw_board(
             {
@@ -121,8 +114,12 @@ class Chess:
             }
         )
 
-    def draw_valid_moves(self):
-        pass
+    def update(self):
+        pygame.draw.rect(self.screen, GREY, (800, 0, 400, 800))
+        self.screen.blit(self.surface, (0, 0))
+        self.leader.draw_pieces(self.pressed_piece)
+        pygame.display.update()
+        # time.sleep(.2)
 
 
 if __name__ == "__main__":
