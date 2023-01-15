@@ -14,18 +14,6 @@ GREEN = (76, 150, 85)
 GREY = (32, 32, 32)
 GREY2 = (160, 160, 160)
 
-# Definición y estado inicial del tablero
-BOARD = [
-    ["1bR", "1bN", "1bB", "1bQ", "1bK", "1bB", "1bN", "1bR"],
-    ["1bP", "2bP", "3bP", "4bP", "5bP", "6bP", "7bP", "8bP"],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", ""],
-    ["1wP", "2wP", "3wP", "4wP", "5wP", "6wP", "7wP", "8wP"],
-    ["1wR", "1wN", "1wB", "0wQ", "0wK", "2wB", "2wN", "2wR"],
-]
-
 
 def import_images():
     # Función para importar las imagenes de las piezas.
@@ -38,3 +26,7 @@ def import_images():
         file = pygame.transform.scale(file, (90, 90))
         piece_vals[name] = file
     return piece_vals
+
+def lst_sum(l1, l2):
+    # Retorna la suma de dos listas. (Acción recurente)
+    return [l1[0] + l2[0], l1[1] + l2[1]]

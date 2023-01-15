@@ -28,6 +28,7 @@ class Chess:
 
         # Variables de estado
         self.pressed_piece = None
+        self.pressed_square = None
         self.pressed = False
 
     # Función para ejecutar el juego
@@ -51,6 +52,7 @@ class Chess:
         # Posición que se acaba de marcar
         curr_pos = [pos[1] // SQUARE_SIZE, pos[0] // SQUARE_SIZE]
         player = self.get_current_player()
+        self.pressed_square = curr_pos
 
         # Comprueba si se está manteniendo pulsado el botón
         if mouse_buttons[0] and not self.pressed:
@@ -117,7 +119,7 @@ class Chess:
     def update(self):
         pygame.draw.rect(self.screen, GREY, (800, 0, 400, 800))
         self.screen.blit(self.surface, (0, 0))
-        self.leader.draw_pieces(self.pressed_piece)
+        self.leader.draw_pieces(self.pressed_piece, self.pressed_square)
         pygame.display.update()
         # time.sleep(.2)
 

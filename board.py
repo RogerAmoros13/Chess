@@ -10,9 +10,9 @@ class Board:
         self.board = [
             ["1bR", "1bN", "1bB", "1bQ", "1bK", "1bB", "1bN", "1bR"],
             ["1bP", "2bP", "3bP", "4bP", "5bP", "6bP", "7bP", "8bP"],
+            ["", "", "0bR", "", "", "", "", ""],
             ["", "", "", "", "", "", "", ""],
-            ["", "", "", "", "", "", "", ""],
-            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "0wK", "", "", ""],
             ["", "", "", "", "", "", "", ""],
             ["1wP", "2wP", "3wP", "4wP", "5wP", "6wP", "7wP", "8wP"],
             ["1wR", "1wN", "1wB", "0wQ", "0wK", "2wB", "2wN", "2wR"],
@@ -34,7 +34,37 @@ class Board:
         return False
 
     def is_king(self, pos):
-        piece = self.get_piece()
+        piece = self.get_piece(pos)
+        if piece:
+            return piece[2] == "K"
+        return False
+
+    def is_knight(self, pos):
+        piece = self.get_piece(pos)
+        if piece:
+            return piece[2] == "N"
+        return False
+
+    def is_bishop(self, pos):
+        piece = self.get_piece(pos)
+        if piece:
+            return piece[2] == "B"
+        return False
+
+    def is_rock(self, pos):
+        piece = self.get_piece(pos)
+        if piece:
+            return piece[2] == "R"
+        return False
+
+    def is_queen(self, pos):
+        piece = self.get_piece(pos)
+        if piece:
+            return piece[2] == "Q"
+        return False
+
+    def is_king(self, pos):
+        piece = self.get_piece(pos)
         if piece:
             return piece[2] == "K"
         return False
