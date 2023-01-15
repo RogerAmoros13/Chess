@@ -27,7 +27,7 @@ class Chess:
         # Variables de estado
         self.pressed_piece = None
         self.pressed = False
-    
+
     # Función para ejecutar el juego
     def run(self):
         running = True
@@ -35,7 +35,7 @@ class Chess:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-    
+
             self.screen.fill(BLACK)
             self.surface.fill(BLACK)
             self.player_move_manager()
@@ -52,30 +52,31 @@ class Chess:
         # Posición que se acaba de marcar
         curr_pos = [pos[1] // SQUARE_SIZE, pos[0] // SQUARE_SIZE]
         player = self.get_current_player()
-        
+
         # Comprueba si se está manteniendo pulsado el botón
         if mouse_buttons[0] and not self.pressed:
 
             # Existe una casilla previa pulsada?
             if self.pressed_piece:
-                
+
                 # Movimientos permitidos del jugador para la pieza seleccionada
-                available_moves = player.get_available_moves(self.pressed_piece)
+                available_moves = player.get_available_moves(
+                    self.pressed_piece)
 
                 if not self.board.are_enemy_pieces(self.pressed_piece, curr_pos):
                     self.pressed_piece = curr_pos
 
-                # Esta casilla es la misma que habia o no es valida? 
+                # Esta casilla es la misma que habia o no es valida?
                 elif (
                     self.pressed_piece == curr_pos
                     or curr_pos not in available_moves
                 ):
                     self.pressed_piece = None
-                
+
                 # Realizar el movimiento
                 else:
                     self.end_move(self.pressed_piece, curr_pos)
-            
+
             # Si la casilla está en blanco no se guarda la posición
             elif (
                 not self.board.get_piece(curr_pos)
@@ -85,7 +86,7 @@ class Chess:
                 self.pressed_piece = curr_pos
             self.pressed = True
         elif not mouse_buttons[0] and self.pressed:
-            self.pressed = False 
+            self.pressed = False
 
     def end_move(self, start, end):
         player = self.get_current_player()
@@ -102,7 +103,7 @@ class Chess:
 
     def get_current_player(self):
         return self.players.get(self.round % 2)
-        
+
     def is_change_piece(self, player, pos):
         piece_code = self.board[pos[0]][pos[1]]
         if not piece_code:
@@ -119,10 +120,10 @@ class Chess:
                 "player": self.get_current_player(),
             }
         )
-    
+
     def draw_valid_moves(self):
         pass
-        
+
 
 if __name__ == "__main__":
     chess = Chess()

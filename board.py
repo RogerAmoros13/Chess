@@ -17,28 +17,28 @@ class Board:
             ["1wP", "2wP", "3wP", "4wP", "5wP", "6wP", "7wP", "8wP"],
             ["1wR", "1wN", "1wB", "0wQ", "0wK", "2wB", "2wN", "2wR"],
         ]
-    
+
     def get_piece(self, pos):
         return self.board[pos[0]][pos[1]]
-    
+
     def get_color(self, pos):
         piece = self.get_piece(pos)
         if piece:
             return piece[1]
         return ""
-    
+
     def is_pawn(self, pos):
         piece = self.get_piece(pos)
         if piece:
             return piece[2] == "P"
         return False
-    
+
     def is_king(self, pos):
         piece = self.get_piece()
         if piece:
             return piece[2] == "K"
         return False
-    
+
     def are_enemy_pieces(self, pos1, pos2):
         # Son colores distintos --> True
         # Son colores iguales --> False
@@ -47,7 +47,7 @@ class Board:
         if piece1 and piece2:
             return piece1[1] != piece2[1]
         return True
-    
+
     def set_position(self, pos, value):
         self.board[pos[0]][pos[1]] = value
 
@@ -56,17 +56,18 @@ class Board:
         piece = self.get_piece(pos1)
         self.set_position(pos1, "")
         self.set_position(pos2, piece)
-    
+
     def draw_board(self, vals):
         screen = vals.get("screen")
         pieces = vals.get("pieces")
         x = 0
         y = 0
-        switch = True # Variable para alternar el color de las casillas.
+        switch = True  # Variable para alternar el color de las casillas.
         for row in self.board:
             for col in row:
                 color = WHITE_SQUARE if switch else GREEN
-                pygame.draw.rect(screen, color, (x, y, SQUARE_SIZE, SQUARE_SIZE))
+                pygame.draw.rect(
+                    screen, color, (x, y, SQUARE_SIZE, SQUARE_SIZE))
                 if col:
                     screen.blit(pieces[col[1:3]], (x + 5, y + 5))
                 # Si hay alguna pieza seleccionada se muestran los movimientos disponibles
@@ -76,8 +77,8 @@ class Board:
                     if self.square_in_available_moves(x, y, player, press):
                         pygame.draw.circle(
                             vals.get("surface"),
-                            GREY2, 
-                            (y + SQUARE_SIZE / 2, x + SQUARE_SIZE / 2), 
+                            GREY2,
+                            (y + SQUARE_SIZE / 2, x + SQUARE_SIZE / 2),
                             15
                         )
                 x += SQUARE_SIZE
