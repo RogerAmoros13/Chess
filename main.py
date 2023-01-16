@@ -3,6 +3,7 @@ from tools import *
 from player import Player
 from board import Board
 from leader import Leader
+from chessEngine import ChessEngine
 import time
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
@@ -13,6 +14,7 @@ class Chess:
         self.screen = pygame.display.set_mode(SIZE)
         pygame.display.set_caption("Chess")
         self.surface = pygame.Surface(SIZE)
+        self.clock = pygame.time.Clock()
         self.surface.set_colorkey((0, 0, 0))
         self.surface.set_alpha(100)
         self.leader = Leader(self.screen)
@@ -20,9 +22,10 @@ class Chess:
         # Data
         self.pieces = import_images()
         self.board = Board()
+        self.chess = ChessEngine(self.board)
         self.players = {
-            0: Player(self.board, "w"),
-            1: Player(self.board, "b"),
+            0: Player(self.chess, "w"),
+            1: Player(self.chess, "b"),
         }
         self.round = 0
 
@@ -41,11 +44,11 @@ class Chess:
 
             self.screen.fill(BLACK)
             self.surface.fill(BLACK)
-            self.player_move_manager()
+            self.event_manager()
             self.draw()
             self.update()
 
-    def player_move_manager(self):
+    def event_manager(self):
         mouse_buttons = pygame.mouse.get_pressed()
         pos = pygame.mouse.get_pos()
 
@@ -62,9 +65,13 @@ class Chess:
 
                 # Movimientos permitidos del jugador para la pieza seleccionada
                 available_moves = player.get_available_moves(
-                    self.pressed_piece)
+                    self.pressed_piece
+                )
 
-                if not self.board.are_enemy_pieces(self.pressed_piece, curr_pos):
+                if (
+                    self.chess.is_inside_board(curr_pos)
+                    and not self.board.are_enemy_pieces(self.pressed_piece, curr_pos)
+                ):
                     self.pressed_piece = curr_pos
 
                 # Esta casilla es la misma que habia o no es valida?
@@ -81,6 +88,7 @@ class Chess:
             # Si la casilla está en blanco no se guarda la posición
             elif (
                 not self.board.get_piece(curr_pos)
+                or self.board.get_color(curr_pos) != player.color
             ):
                 self.pressed_piece = None
             else:
@@ -93,12 +101,18 @@ class Chess:
         player = self.get_current_player()
         if self.board.get_piece(end):
             player.won_pieces.append(self.board.get_piece(end))
-        if self.board.is_pawn(start):
-            player.moved_pawns.append(self.board.get_piece(start))
-
+        if self.board.is_king(start):
+            self.chess.kings_position.update({player.color: (end[0], end[1])})
+            castle = self.chess.is_castling(end, player.color)
+            if castle:
+                self.board.castling_move(player.color, castle)
+            else:
+                self.board.move_piece(start, end)
+            self.chess.kings_moved.update({player.color: True})
         # Si el movimiento es valido se cambia la posición
         # Se termina la ronda y se despulsa la pieza
-        self.board.move_piece(start, end)
+        else:
+            self.board.move_piece(start, end)
         self.pressed_piece = None
         self.round += 1
 
@@ -120,8 +134,10 @@ class Chess:
         pygame.draw.rect(self.screen, GREY, (800, 0, 400, 800))
         self.screen.blit(self.surface, (0, 0))
         self.leader.draw_pieces(self.pressed_piece, self.pressed_square)
+        self.leader.draw_logs(self.board.registry)
         pygame.display.update()
-        # time.sleep(.2)
+        self.clock.tick(30)
+        # time.sleep(.4)
 
 
 if __name__ == "__main__":
