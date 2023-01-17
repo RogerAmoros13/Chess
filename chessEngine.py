@@ -1,5 +1,4 @@
 from tools import lst_sum
-from board import Board
 
 
 class ChessEngine:
@@ -118,6 +117,7 @@ class ChessEngine:
                 self.board.is_rook([sign, 7], color)
                 and not self.board.get_piece([sign, 6])
                 and not self.board.get_piece([sign, 5])
+                and not self.is_check(pos, [sign, 5], color)
             ):
                 moves.append([sign, 6])
             if (
@@ -125,6 +125,7 @@ class ChessEngine:
                 and not self.board.get_piece([sign, 1])
                 and not self.board.get_piece([sign, 2])
                 and not self.board.get_piece([sign, 3])
+                and not self.is_check(pos, [sign, 3], color)
             ):
                 moves.append([sign, 2])
         return self.check_is_valid_move(pos, moves, color)
