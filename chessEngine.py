@@ -1,11 +1,11 @@
-from tools import lst_sum
+from tools import lst_sum, lst_diff
 
 
 class ChessEngine:
     def __init__(self, board):
         self.board = board
         self.kings_moved = {"w": False, "b": False}
-        self.kings_position = {"w": (5, 4), "b": (0, 4)}
+        self.kings_position = {"w": (7, 4), "b": (0, 4)}
 
     def get_pawn_moves(self, position):
         # Dirección de avance del peón
@@ -41,12 +41,11 @@ class ChessEngine:
                 if self._check_available_square(lst_sum(pos, [j, i]), color):
                     moves.append(lst_sum(pos, [j, i]))
         return moves
-    
+
     def get_knight_moves(self, pos, _color=None):
         color = _color or self.board.get_color(pos)
         moves = self._get_knight_moves(pos, color)
         return self.check_is_valid_move(pos, moves, color)
-
 
     def get_directional_moves(self, pos, dir, color):
         fw = 1
@@ -101,8 +100,7 @@ class ChessEngine:
         moves += self.get_bishop_moves(pos)
         return moves
 
-    def get_king_moves(self, pos):
-        color = self.board.get_color(pos)
+    def _get_surrounding_moves(self, pos, color):
         moves = []
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
@@ -110,8 +108,13 @@ class ChessEngine:
                     continue
                 if self._check_available_square(lst_sum(pos, [i, j]), color):
                     moves.append(lst_sum(pos, [i, j]))
+        return moves
+
+    def get_king_moves(self, pos):
+        color = self.board.get_color(pos)
+        moves = self._get_surrounding_moves(pos, color)
         sign = 7 if color == "w" else 0
-        if not self.kings_moved.get(color):
+        if not self.kings_moved.get(color) and not self.is_check(pos, pos, color):
             # Enroque corto
             if (
                 self.board.is_rook([sign, 7], color)
@@ -154,18 +157,18 @@ class ChessEngine:
             return False
         return True
 
-    def is_check(self, start, end, color, current_state=False):
+    def is_check(self, start, end, color):
         piece1 = self.board.get_piece(start)
         piece2 = self.board.get_piece(end)
         if self.board.is_king(start):
             king_pos = end
         else:
             king_pos = self.kings_position.get(color)
-        if not current_state:
-            self.board.move_piece(start, end, False)
+        self.board.move_piece(start, end, False)
         bishop_moves = self._get_bishop_moves(king_pos, color)
         rook_moves = self._get_rook_moves(king_pos, color)
-        knight_moves = self._get_knight_moves(king_pos, color)        
+        knight_moves = self._get_knight_moves(king_pos, color)
+        king_moves = self._get_surrounding_moves(king_pos, color)
         check_squares = []
         for move in bishop_moves:
             if self.board.is_bishop(move) or self.board.is_queen(move):
@@ -176,17 +179,28 @@ class ChessEngine:
         for move in knight_moves:
             if self.board.is_knight(move):
                 check_squares.append(move)
-        if not current_state:
-            self.board.undo_move(
-                {
-                    "position": start,
-                    "piece": piece1,
-                },
-                {
-                    "position": end,
-                    "piece": piece2,
-                }
-            )
+        for move in king_moves:
+            if self.board.is_king(move):
+                check_squares.append(move)
+                continue
+            diff = lst_diff(king_pos, move)
+            if color == "w" and diff == [-1, -1] or diff == [-1, 1]:
+                if self.board.is_pawn(move):
+                    check_squares.append(move)
+                    continue
+            elif diff == [1, -1] or diff == [1, 1]:
+                if self.board.is_pawn(move):
+                    check_squares.append(move)
+        self.board.undo_move(
+            {
+                "position": start,
+                "piece": piece1,
+            },
+            {
+                "position": end,
+                "piece": piece2,
+            }
+        )
         if len(check_squares):
             return True
         return False
@@ -200,3 +214,13 @@ class ChessEngine:
         if pos == [row, 2]:
             return "long"
         return ""
+
+    def get_all_moves(self, player, check_one=True):
+        moves = []
+        for i in range(self.board.dims):
+            for j in range(self.board.dims):
+                if self.board.get_color([i, j]) == player.color:
+                    moves += player.get_available_moves([i, j])
+                    if check_one and moves:
+                        return True
+        return False

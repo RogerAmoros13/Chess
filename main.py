@@ -33,6 +33,9 @@ class Chess:
         self.pressed_piece = None
         self.pressed_square = None
         self.pressed = False
+        self.check_mate = False
+        self.current_player = self.players.get(0)
+        self.old_player  = self.players.get(1)
 
     # Función para ejecutar el juego
     def run(self):
@@ -44,8 +47,13 @@ class Chess:
 
             self.screen.fill(BLACK)
             self.surface.fill(BLACK)
-            self.event_manager()
+            if not self.check_mate:
+                self.event_manager()
             self.draw()
+            if not self.check_mate and not self.chess.get_all_moves(self.current_player):
+                self.check_mate = True
+            if self.check_mate:
+                self.draw_win_screen()
             self.update()
 
     def event_manager(self):
@@ -54,7 +62,6 @@ class Chess:
 
         # Posición que se acaba de marcar
         curr_pos = [pos[1] // SQUARE_SIZE, pos[0] // SQUARE_SIZE]
-        player = self.get_current_player()
         self.pressed_square = curr_pos
 
         # Comprueba si se está manteniendo pulsado el botón
@@ -64,7 +71,7 @@ class Chess:
             if self.pressed_piece:
 
                 # Movimientos permitidos del jugador para la pieza seleccionada
-                available_moves = player.get_available_moves(
+                available_moves = self.current_player.get_available_moves(
                     self.pressed_piece
                 )
 
@@ -84,11 +91,13 @@ class Chess:
                 # Realizar el movimiento
                 else:
                     self.end_move(self.pressed_piece, curr_pos)
+                    self.old_player = self.current_player
+                    self.current_player = self.get_current_player()
 
             # Si la casilla está en blanco no se guarda la posición
             elif (
                 not self.board.get_piece(curr_pos)
-                or self.board.get_color(curr_pos) != player.color
+                or self.board.get_color(curr_pos) != self.current_player.color
             ):
                 self.pressed_piece = None
             else:
@@ -126,9 +135,15 @@ class Chess:
                 "pieces": self.pieces,
                 "pressed_piece": self.pressed_piece,
                 "surface": self.surface,
-                "player": self.get_current_player(),
+                "player": self.current_player,
             }
         )
+
+    def draw_win_screen(self):
+        font_title = pygame.font.SysFont("didot.ttc", 80)
+        log_text = font_title.render("{} ganan!".format(
+            self.old_player.display_name), True, BLUE)
+        self.screen.blit(log_text, (230, 350))
 
     def update(self):
         pygame.draw.rect(self.screen, GREY, (800, 0, 400, 800))

@@ -11,12 +11,9 @@ class Player:
         self.chess = chess_engine
         self.color = color
         self.won_pieces = []
+        self.display_name = "Blancas" if color == "w" else "Negras"
 
     def get_available_moves(self, position):
-        if not self.board.get_piece(position):
-            return []
-        if self.board.get_color(position) != self.color:
-            return []
         # Movimientos disponibles para el peón seleccionado
         if self.board.is_pawn(position):
             return self.chess.get_pawn_moves(position)

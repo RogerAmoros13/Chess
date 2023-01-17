@@ -14,6 +14,7 @@ GREEN = (76, 150, 85)
 GREY = (32, 32, 32)
 GREY2 = (160, 160, 160)
 YELLOW = (255, 255, 102)
+BLUE = (0, 102, 255)
 
 
 def import_images():
@@ -28,9 +29,15 @@ def import_images():
         piece_vals[name] = file
     return piece_vals
 
+
 def lst_sum(l1, l2):
     # Retorna la suma de dos listas. (Acción recurente)
     return [l1[0] + l2[0], l1[1] + l2[1]]
+
+
+def lst_diff(l1, l2):
+    return [l1[0] - l2[0], l1[1] - l2[1]]
+
 
 num2let = {
     0: "a",

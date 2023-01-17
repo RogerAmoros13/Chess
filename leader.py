@@ -22,7 +22,7 @@ class Leader:
                 pos2[0], pos2[1]), True, WHITE
             )
             self.screen.blit(text2, (820, 50))
-    
+
     def draw_logs(self, logs):
         font_title = pygame.font.SysFont("didot.ttc", 24)
         font = pygame.font.SysFont("didot.ttc", 18)
@@ -35,6 +35,3 @@ class Leader:
                 msg = font.render(_msg, True, WHITE)
                 self.screen.blit(msg, (830, start))
                 start += 20
-
-
-

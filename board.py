@@ -9,16 +9,16 @@ class Board:
     def __init__(self, board=False):
         self.board = [
             ["1bR", "1bN", "1bB", "1bQ", "1bK", "1bB", "1bN", "1bR"],
-            ["1bP", "2bP", "3bP", "4bP", "5bP", "6bP", "7bP", "8bP"],
-            ["", "", "", "", "", "0bR", "", ""],
+            ["1bP", "2bP", "2bP", "4bP", "5bP", "6bP", "7bP", "8bP"],
             ["", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", ""],
-            ["", "", "", "", "0wK", "", "", ""],
-            ["1wP", "2wP", "3wP", "4wP", "5wP", "", "7wP", ""],
-            ["1wR", "1wN", "1wB", "0wQ", "0wK", "", "", "2wR"],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["1wP", "2wP", "3wP", "4wP", "5wP", "6wP", "7wP", "8wP"],
+            ["1wR", "1wN", "1wB", "0wQ", "0wK", "1wB", "1wN", "2wR"],
         ]
         self.registry = []
-
+        self.dims = 8
 
     def get_piece(self, pos):
         if pos[0] < 0 or pos[0] > 7 or pos[1] < 0 or pos[1] > 7:
@@ -26,6 +26,7 @@ class Board:
         return self.board[pos[0]][pos[1]]
 
     def get_color(self, pos):
+        # TODO: get_color(self, pos, color) --> bool
         piece = self.get_piece(pos)
         if piece:
             return piece[1]
