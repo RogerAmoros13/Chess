@@ -26,11 +26,16 @@ class Board:
         return self.board[pos[0]][pos[1]]
 
     def get_color(self, pos):
-        # TODO: get_color(self, pos, color) --> bool
         piece = self.get_piece(pos)
         if piece:
             return piece[0]
         return ""
+
+    def is_color(self, pos, color):
+        piece = self.get_piece(pos)
+        if piece:
+            return piece[0] == color
+        return False
 
     def is_pawn(self, pos, color=None):
         return self.is_piece(pos, "P", color)

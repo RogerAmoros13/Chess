@@ -35,7 +35,8 @@ class Chess:
         self.pressed = False
         self.check_mate = False
         self.current_player = self.players.get(0)
-        self.old_player  = self.players.get(1)
+        self.chess.color = self.current_player.color
+        self.old_player = self.players.get(1)
 
     # Función para ejecutar el juego
     def run(self):
@@ -95,7 +96,7 @@ class Chess:
             # Si la casilla está en blanco no se guarda la posición
             elif (
                 not self.board.get_piece(curr_pos)
-                or self.board.get_color(curr_pos) != self.current_player.color
+                or not self.board.is_color(curr_pos, self.current_player.color)
             ):
                 self.pressed_piece = None
             else:
@@ -108,7 +109,8 @@ class Chess:
         if self.board.get_piece(end):
             self.current_player.won_pieces.append(self.board.get_piece(end))
         if self.board.is_king(start):
-            self.chess.kings_position.update({self.current_player.color: (end[0], end[1])})
+            self.chess.kings_position.update(
+                {self.current_player.color: (end[0], end[1])})
             castle = self.chess.is_castling(end, self.current_player.color)
             if castle:
                 self.board.castling_move(self.current_player.color, castle)
@@ -123,7 +125,7 @@ class Chess:
         self.round += 1
         self.old_player = self.current_player
         self.current_player = self.get_current_player()
-        self.chess.current_color = self.current_player.color
+        self.chess.change_color(self.current_player.color)
 
     def get_current_player(self):
         return self.players.get(self.round % 2)
