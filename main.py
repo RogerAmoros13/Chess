@@ -91,8 +91,6 @@ class Chess:
                 # Realizar el movimiento
                 else:
                     self.end_move(self.pressed_piece, curr_pos)
-                    self.old_player = self.current_player
-                    self.current_player = self.get_current_player()
 
             # Si la casilla está en blanco no se guarda la posición
             elif (
@@ -107,23 +105,25 @@ class Chess:
             self.pressed = False
 
     def end_move(self, start, end):
-        player = self.get_current_player()
         if self.board.get_piece(end):
-            player.won_pieces.append(self.board.get_piece(end))
+            self.current_player.won_pieces.append(self.board.get_piece(end))
         if self.board.is_king(start):
-            self.chess.kings_position.update({player.color: (end[0], end[1])})
-            castle = self.chess.is_castling(end, player.color)
+            self.chess.kings_position.update({self.current_player.color: (end[0], end[1])})
+            castle = self.chess.is_castling(end, self.current_player.color)
             if castle:
-                self.board.castling_move(player.color, castle)
+                self.board.castling_move(self.current_player.color, castle)
             else:
                 self.board.move_piece(start, end)
-            self.chess.kings_moved.update({player.color: True})
+            self.chess.kings_moved.update({self.current_player.color: True})
         # Si el movimiento es valido se cambia la posición
         # Se termina la ronda y se despulsa la pieza
         else:
             self.board.move_piece(start, end)
         self.pressed_piece = None
         self.round += 1
+        self.old_player = self.current_player
+        self.current_player = self.get_current_player()
+        self.chess.current_color = self.current_player.color
 
     def get_current_player(self):
         return self.players.get(self.round % 2)

@@ -6,6 +6,7 @@ class ChessEngine:
         self.board = board
         self.kings_moved = {"w": False, "b": False}
         self.kings_position = {"w": (7, 4), "b": (0, 4)}
+        self.color = None
 
     def get_pawn_moves(self, position):
         # Dirección de avance del peón

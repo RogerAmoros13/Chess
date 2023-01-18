@@ -6,16 +6,16 @@ from tools import *
 
 
 class Board:
-    def __init__(self, board=False):
+    def __init__(self):
         self.board = [
-            ["1bR", "1bN", "1bB", "1bQ", "1bK", "1bB", "1bN", "1bR"],
-            ["1bP", "2bP", "2bP", "4bP", "5bP", "6bP", "7bP", "8bP"],
+            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+            ["bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"],
             ["", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", ""],
             ["", "", "", "", "", "", "", ""],
-            ["1wP", "2wP", "3wP", "4wP", "5wP", "6wP", "7wP", "8wP"],
-            ["1wR", "1wN", "1wB", "0wQ", "0wK", "1wB", "1wN", "2wR"],
+            ["wP", "wP", "wP", "wP", "wP", "wP", "wP", "wP"],
+            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
         ]
         self.registry = []
         self.dims = 8
@@ -29,7 +29,7 @@ class Board:
         # TODO: get_color(self, pos, color) --> bool
         piece = self.get_piece(pos)
         if piece:
-            return piece[1]
+            return piece[0]
         return ""
 
     def is_pawn(self, pos, color=None):
@@ -57,8 +57,8 @@ class Board:
         piece = self.get_piece(pos)
         if piece:
             if color:
-                return piece[2] == code and piece[1] == color
-            return piece[2] == code
+                return piece[1] == code and piece[0] == color
+            return piece[1] == code
         return False
 
     def are_enemy_pieces(self, pos1, pos2):
@@ -67,7 +67,7 @@ class Board:
         piece1 = self.get_piece(pos1)
         piece2 = self.get_piece(pos2)
         if piece1 and piece2:
-            return piece1[1] != piece2[1]
+            return piece1[0] != piece2[0]
         return True
 
     def set_position(self, pos, value):
@@ -149,7 +149,7 @@ class Board:
                         pygame.draw.rect(
                             screen, YELLOW, (x, y, SQUARE_SIZE, SQUARE_SIZE)
                         )
-                    screen.blit(pieces[col[1:3]], (x + 5, y + 5))
+                    screen.blit(pieces[col], (x + 5, y + 5))
                 # Si hay alguna pieza seleccionada se muestran los movimientos disponibles
                 if press and self.square_in_available_moves(x, y, player, press):
                     pygame.draw.circle(
