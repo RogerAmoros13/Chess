@@ -7,30 +7,36 @@ class ChessEngine:
         self.kings_moved = {"w": False, "b": False}
         self.kings_position = {"w": (7, 4), "b": (0, 4)}
         self.color = None
+        self.en_passant = None
 
-    def get_pawn_moves(self, position):
+    def get_pawn_moves(self, pos):
         # Dirección de avance del peón
         sign = 1 if self.color == "b" else -1
         moves = []
         # Avanzar una casilla
         if (
             self._check_available_square_pawn(
-                lst_sum(position, [sign, 0]))
+                lst_sum(pos, [sign, 0]))
         ):
-            moves.append(lst_sum(position, [sign, 0]))
+            moves.append(lst_sum(pos, [sign, 0]))
             # Avanzar dos casillas
             start_file = 6 if self.color == "w" else 1
             if (
                 self._check_available_square_pawn(
-                    lst_sum(position, [2 * sign, 0])
-                ) and position[0] == start_file
+                    lst_sum(pos, [2 * sign, 0])
+                ) and pos[0] == start_file
             ):
-                moves.append(lst_sum(position, [2 * sign, 0]))
+                moves.append(lst_sum(pos, [2 * sign, 0]))
         # Comer una ficha en diagonal
         for i in [1, -1]:
-            if self._check_available_square_pawn(lst_sum(position, [sign, i]), True):
-                moves.append(lst_sum(position, [sign, i]))
-        return self.check_is_valid_move(position, moves)
+            if self._check_available_square_pawn(lst_sum(pos, [sign, i]), True):
+                moves.append(lst_sum(pos, [sign, i]))
+            # Comer al paso
+            if self.en_passant or self.en_passant == 0:
+                passant_row = 3 if self.color == "w" else 4
+                if pos[0] == passant_row and pos[1] + i == self.en_passant:
+                    moves.append(lst_sum(pos, [sign, i]))
+        return self.check_is_valid_move(pos, moves)
 
     def _get_knight_moves(self, pos):
         moves = []
@@ -211,6 +217,15 @@ class ChessEngine:
             return "long"
         return ""
 
+    def is_en_passant(self, start, end):
+        if (
+            (self.en_passant or self.en_passant == 0)
+            and abs(start[1] - end[1]) == 1
+            and self.board.is_pawn(lst_sum(start, [0, end[1] - start[1]]))
+        ):
+            return True
+        return False
+
     def get_all_moves(self, player, check_one=True):
         moves = []
         for i in range(self.board.dims):
@@ -221,5 +236,6 @@ class ChessEngine:
                         return True
         return False
 
-    def change_color(self, color):
+    def update_variables(self, color, en_passant):
+        self.en_passant = en_passant
         self.color = color

@@ -120,12 +120,17 @@ class Chess:
         # Si el movimiento es valido se cambia la posición
         # Se termina la ronda y se despulsa la pieza
         else:
+            if self.chess.is_en_passant(start, end):
+                self.board.set_position(lst_sum(start, [0, end[1] - start[1]]), "")
             self.board.move_piece(start, end)
         self.pressed_piece = None
         self.round += 1
         self.old_player = self.current_player
         self.current_player = self.get_current_player()
-        self.chess.change_color(self.current_player.color)
+        en_passant = None
+        if self.board.is_pawn(end) and abs(start[0] - end[0]) == 2:
+            en_passant = start[1]
+        self.chess.update_variables(self.current_player.color, en_passant)
 
     def get_current_player(self):
         return self.players.get(self.round % 2)
