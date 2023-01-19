@@ -1,7 +1,13 @@
 import pygame
 import os
+import platform
 
-PATH_TO_PIECES = os.getcwd() + "\\files\\pieces"
+if platform.system() == "Windows":
+    bar = "\\"
+else:
+    bar = "/" 
+
+PATH_TO_PIECES = os.getcwd() + bar + "files" + bar + "pieces"
 
 # Parametros del display.
 SIZE = (1200, 800)
@@ -23,7 +29,7 @@ def import_images():
     piece_vals = {}
     for piece in dir_list:
         name = piece[:2]
-        final_path = PATH_TO_PIECES + "\\" + piece
+        final_path = PATH_TO_PIECES + bar + piece
         file = pygame.image.load(final_path)
         file = pygame.transform.scale(file, (90, 90))
         piece_vals[name] = file
