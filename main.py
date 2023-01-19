@@ -27,13 +27,15 @@ class Chess:
             0: Player(self.chess, "w"),
             1: Player(self.chess, "b"),
         }
-        self.round = 0
+        self.count = 0
 
         # Variables de estado
         self.pressed_piece = None
         self.pressed_square = None
         self.pressed = False
+        self.check = False
         self.check_mate = False
+        self.stalemate = False
         self.current_player = self.players.get(0)
         self.chess.color = self.current_player.color
         self.old_player = self.players.get(1)
@@ -51,11 +53,18 @@ class Chess:
             if not self.check_mate:
                 self.event_manager()
             self.draw()
-            if not self.check_mate and not self.chess.get_all_moves(self.current_player):
-                self.check_mate = True
-            if self.check_mate:
-                self.draw_win_screen()
+            self.check_endgame()
             self.update()
+
+    def check_endgame(self):
+        if not (self.check_mate or self.stalemate):
+            if not self.chess.get_all_moves(self.current_player):
+                if self.check:
+                    self.check_mate = True
+                else:
+                    self.stalemate = True
+        if self.check_mate or self.stalemate:
+            self.draw_end_screen()
 
     def event_manager(self):
         mouse_buttons = pygame.mouse.get_pressed()
@@ -121,10 +130,11 @@ class Chess:
         # Se termina la ronda y se despulsa la pieza
         else:
             if self.chess.is_en_passant(start, end):
-                self.board.set_position(lst_sum(start, [0, end[1] - start[1]]), "")
+                self.board.set_position(
+                    lst_sum(start, [0, end[1] - start[1]]), "")
             self.board.move_piece(start, end)
         self.pressed_piece = None
-        self.round += 1
+        self.count += 1
         self.old_player = self.current_player
         self.current_player = self.get_current_player()
         en_passant = None
@@ -132,11 +142,13 @@ class Chess:
             if abs(start[0] - end[0]) == 2:
                 en_passant = start[1]
             if end[0] in [0, 7]:
-                self.board.set_position(end, "{}Q".format(self.old_player.color))
+                self.board.set_position(
+                    end, "{}Q".format(self.old_player.color))
         self.chess.update_variables(self.current_player.color, en_passant)
+        self.check = self.chess.is_check(end, end)
 
     def get_current_player(self):
-        return self.players.get(self.round % 2)
+        return self.players.get(self.count % 2)
 
     def draw(self):
         self.board.draw_board(
@@ -149,10 +161,20 @@ class Chess:
             }
         )
 
-    def draw_win_screen(self):
+    def draw_end_screen(self):
         font_title = pygame.font.SysFont("didot.ttc", 80)
-        log_text = font_title.render("{} ganan!".format(
-            self.old_player.display_name), True, BLUE)
+        if self.check_mate:
+            log_text = font_title.render(
+                "{} ganan!".format(
+                    self.old_player.display_name
+                ),
+                True,
+                BLUE
+            )
+        else:
+            log_text = font_title.render(
+                "Tablas!", True, BLUE
+            )
         self.screen.blit(log_text, (230, 350))
 
     def update(self):
@@ -162,7 +184,7 @@ class Chess:
         self.leader.draw_logs(self.board.registry)
         pygame.display.update()
         self.clock.tick(30)
-        # time.sleep(.4)
+        # time.sleep(.3)
 
 
 if __name__ == "__main__":

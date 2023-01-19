@@ -5,9 +5,19 @@ class ChessEngine:
     def __init__(self, board):
         self.board = board
         self.kings_moved = {"w": False, "b": False}
-        self.kings_position = {"w": (7, 4), "b": (0, 4)}
+        self.kings_position = self.get_initial_king_position()
         self.color = None
         self.en_passant = None
+
+    def get_initial_king_position(self):
+        kings_pos = {}
+        for i in range(self.board.dims):
+            for j in range(self.board.dims):
+                if self.board.is_king([i, j]):
+                    kings_pos.update(
+                        {self.board.get_color([i, j]): (i, j)}
+                    )
+        return kings_pos
 
     def get_pawn_moves(self, pos):
         # Dirección de avance del peón
@@ -159,13 +169,14 @@ class ChessEngine:
             return False
         return True
 
-    def is_check(self, start, end):
+    def is_check(self, start, end, color=False):
+        color = color or self.color
         piece1 = self.board.get_piece(start)
         piece2 = self.board.get_piece(end)
         if self.board.is_king(start):
             king_pos = end
         else:
-            king_pos = self.kings_position.get(self.color)
+            king_pos = self.kings_position.get(color)
         self.board.move_piece(start, end, False)
         bishop_moves = self._get_bishop_moves(king_pos)
         rook_moves = self._get_rook_moves(king_pos)
