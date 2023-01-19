@@ -128,8 +128,11 @@ class Chess:
         self.old_player = self.current_player
         self.current_player = self.get_current_player()
         en_passant = None
-        if self.board.is_pawn(end) and abs(start[0] - end[0]) == 2:
-            en_passant = start[1]
+        if self.board.is_pawn(end):
+            if abs(start[0] - end[0]) == 2:
+                en_passant = start[1]
+            if end[0] in [0, 7]:
+                self.board.set_position(end, "{}Q".format(self.old_player.color))
         self.chess.update_variables(self.current_player.color, en_passant)
 
     def get_current_player(self):
