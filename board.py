@@ -7,7 +7,7 @@ from tools import *
 
 class Board:
     def __init__(self):
-        self.board = BOARD_QUEEN
+        self.board = BOARD_BASIC
         self.registry = []
         self.dims = 8
 

@@ -30,12 +30,10 @@ class Chess:
         self.count = 0
 
         # Variables de estado
-        self.pressed_piece = None
-        self.pressed_square = None
+        self.mouse_pos = None
+        self.start_square = None
+        self.end_square = None
         self.pressed = False
-        self.check = False
-        self.check_mate = False
-        self.stalemate = False
         self.current_player = self.players.get(0)
         self.chess.color = self.current_player.color
         self.old_player = self.players.get(1)
@@ -50,102 +48,53 @@ class Chess:
 
             self.screen.fill(BLACK)
             self.surface.fill(BLACK)
-            if not self.check_mate:
+            if not self.chess.check_mate:
                 self.event_manager()
             self.draw()
-            self.check_endgame()
             self.update()
 
-    def check_endgame(self):
-        if not (self.check_mate or self.stalemate):
-            if not self.chess.get_all_moves(self.current_player):
-                if self.check:
-                    self.check_mate = True
-                else:
-                    self.stalemate = True
-        if self.check_mate or self.stalemate:
-            self.draw_end_screen()
-
-    def event_manager(self):
+    def get_mouse_events(self):
         mouse_buttons = pygame.mouse.get_pressed()
         pos = pygame.mouse.get_pos()
-
-        # Posición que se acaba de marcar
         curr_pos = [pos[1] // SQUARE_SIZE, pos[0] // SQUARE_SIZE]
-        self.pressed_square = curr_pos
+        self.mouse_pos = curr_pos
+        if self.chess.is_inside_board(curr_pos):
+            if mouse_buttons[0] and not self.pressed:
+                self.pressed = True
+                if self.start_square:
+                    available_moves = self.chess.get_available_moves(
+                        self.start_square
+                    )
+                    if curr_pos == self.start_square:
+                        self.start_square = None
+                    elif curr_pos in available_moves:
+                        self.end_square = curr_pos
+                    elif not self.board.are_enemy_pieces(
+                        self.start_square, curr_pos
+                    ):
+                        self.start_square = curr_pos
+                    else:
+                        self.start_square = None
+                elif self.board.is_color(curr_pos, self.current_player.color):
+                    self.start_square = curr_pos
+            elif not mouse_buttons[0] and self.pressed:
+                self.pressed = False
 
-        # Comprueba si se está manteniendo pulsado el botón
-        if mouse_buttons[0] and not self.pressed:
+    def event_manager(self):
+        self.get_mouse_events()
+        if self.end_square:
+            vals = self.chess.do_move(
+                self.start_square,
+                self.end_square,
+            )
+            self.update_game_flags()
 
-            # Existe una casilla previa pulsada?
-            if self.pressed_piece:
-
-                # Movimientos permitidos del jugador para la pieza seleccionada
-                available_moves = self.current_player.get_available_moves(
-                    self.pressed_piece
-                )
-
-                if (
-                    self.chess.is_inside_board(curr_pos)
-                    and not self.board.are_enemy_pieces(self.pressed_piece, curr_pos)
-                ):
-                    self.pressed_piece = curr_pos
-
-                # Esta casilla es la misma que habia o no es valida?
-                elif (
-                    self.pressed_piece == curr_pos
-                    or curr_pos not in available_moves
-                ):
-                    self.pressed_piece = None
-
-                # Realizar el movimiento
-                else:
-                    self.end_move(self.pressed_piece, curr_pos)
-
-            # Si la casilla está en blanco no se guarda la posición
-            elif (
-                not self.board.get_piece(curr_pos)
-                or not self.board.is_color(curr_pos, self.current_player.color)
-            ):
-                self.pressed_piece = None
-            else:
-                self.pressed_piece = curr_pos
-            self.pressed = True
-        elif not mouse_buttons[0] and self.pressed:
-            self.pressed = False
-
-    def end_move(self, start, end):
-        if self.board.get_piece(end):
-            self.current_player.won_pieces.append(self.board.get_piece(end))
-        if self.board.is_king(start):
-            self.chess.kings_position.update(
-                {self.current_player.color: (end[0], end[1])})
-            castle = self.chess.is_castling(end, self.current_player.color)
-            if castle:
-                self.board.castling_move(self.current_player.color, castle)
-            else:
-                self.board.move_piece(start, end)
-            self.chess.kings_moved.update({self.current_player.color: True})
-        # Si el movimiento es valido se cambia la posición
-        # Se termina la ronda y se despulsa la pieza
-        else:
-            if self.chess.is_en_passant(start, end):
-                self.board.set_position(
-                    lst_sum(start, [0, end[1] - start[1]]), "")
-            self.board.move_piece(start, end)
-        self.pressed_piece = None
+    def update_game_flags(self, vals={}):
         self.count += 1
+        self.start_square = False
+        self.end_square = False
         self.old_player = self.current_player
         self.current_player = self.get_current_player()
-        en_passant = None
-        if self.board.is_pawn(end):
-            if abs(start[0] - end[0]) == 2:
-                en_passant = start[1]
-            if end[0] in [0, 7]:
-                self.board.set_position(
-                    end, "{}Q".format(self.old_player.color))
-        self.chess.update_variables(self.current_player.color, en_passant)
-        self.check = self.chess.is_check(end, end)
 
     def get_current_player(self):
         return self.players.get(self.count % 2)
@@ -155,15 +104,17 @@ class Chess:
             {
                 "screen": self.screen,
                 "pieces": self.pieces,
-                "pressed_piece": self.pressed_piece,
+                "pressed_piece": self.start_square,
                 "surface": self.surface,
                 "player": self.current_player,
             }
         )
+        if self.chess.end_game:
+            self.draw_end_screen()
 
     def draw_end_screen(self):
         font_title = pygame.font.SysFont("didot.ttc", 80)
-        if self.check_mate:
+        if self.chess.check_mate:
             log_text = font_title.render(
                 "{} ganan!".format(
                     self.old_player.display_name
@@ -180,7 +131,7 @@ class Chess:
     def update(self):
         pygame.draw.rect(self.screen, GREY, (800, 0, 400, 800))
         self.screen.blit(self.surface, (0, 0))
-        self.leader.draw_pieces(self.pressed_piece, self.pressed_square)
+        self.leader.draw_pieces(self.start_square, self.mouse_pos)
         self.leader.draw_logs(self.board.registry)
         pygame.display.update()
         self.clock.tick(30)

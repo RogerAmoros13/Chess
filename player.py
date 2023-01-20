@@ -6,10 +6,11 @@ from tools import lst_sum
 
 
 class Player:
-    def __init__(self, chess_engine, color):
+    def __init__(self, chess_engine, color, brain="human"):
         self.board = chess_engine.board
         self.chess = chess_engine
         self.color = color
+        self.brain = brain
         self.won_pieces = []
         self.display_name = "Blancas" if color == "w" else "Negras"
 
@@ -29,5 +30,5 @@ class Player:
             return self.chess.get_king_moves(position)
         return []
 
-    def get_all_available_moves(self):
+    def make_ai_move(self):
         pass

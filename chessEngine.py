@@ -1,4 +1,4 @@
-from tools import lst_sum, lst_diff
+from tools import lst_sum, lst_diff, num2let
 
 
 class ChessEngine:
@@ -8,6 +8,12 @@ class ChessEngine:
         self.kings_position = self.get_initial_king_position()
         self.color = None
         self.en_passant = None
+        self.check = False
+        self.check_mate = False
+        self.stalemate = False
+        self.end_game = False
+        self.round = 1
+        self.logs = []
 
     def get_initial_king_position(self):
         kings_pos = {}
@@ -218,9 +224,9 @@ class ChessEngine:
             return True
         return False
 
-    def is_castling(self, pos, color):
-        row = 7 if color == "w" else 0
-        if self.kings_moved.get(color):
+    def is_castling(self, pos):
+        row = 7 if self.color == "w" else 0
+        if self.kings_moved.get(self.color):
             return ""
         if pos == [row, 6]:
             return "short"
@@ -237,12 +243,28 @@ class ChessEngine:
             return True
         return False
 
-    def get_all_moves(self, player, check_one=True):
+    def get_available_moves(self, position):
+        # Movimientos disponibles para el peón seleccionado
+        if self.board.is_pawn(position):
+            return self.get_pawn_moves(position)
+        elif self.board.is_knight(position):
+            return self.get_knight_moves(position)
+        elif self.board.is_bishop(position):
+            return self.get_bishop_moves(position)
+        elif self.board.is_rook(position):
+            return self.get_rook_moves(position)
+        elif self.board.is_queen(position):
+            return self.get_queen_moves(position)
+        elif self.board.is_king(position):
+            return self.get_king_moves(position)
+        return []
+
+    def get_all_moves(self, check_one=True):
         moves = []
         for i in range(self.board.dims):
             for j in range(self.board.dims):
-                if self.board.is_color([i, j], player.color):
-                    moves += player.get_available_moves([i, j])
+                if self.board.is_color([i, j], self.color):
+                    moves += self.get_available_moves([i, j])
                     if check_one and moves:
                         return True
         return False
@@ -250,3 +272,81 @@ class ChessEngine:
     def update_variables(self, color, en_passant):
         self.en_passant = en_passant
         self.color = color
+
+    def do_move(self, start, end):
+        next_move_color = "b" if self.color == "w" else "w"
+        vals = {
+            "round": self.round,
+            "start_square": start,
+            "end_square": end,
+            "moved_piece": self.board.get_piece(start),
+        }
+        eat = ""
+        if self.board.get_piece(end):
+            eat = self.board.get_piece(end)
+        vals.update({"eaten_piece": eat})
+        # Posibilidades de mover el rey
+        if self.board.is_king(start):
+            self.kings_position.update(
+                {self.color: (end[0], end[1])}
+            )
+            castle = self.is_castling(end)
+            if castle:
+                self.board.castling_move(self.color, castle)
+                vals.update({"castling": castle})
+            self.kings_moved.update({self.color: True})
+        # Gestión de comer al paso
+        if self.is_en_passant(start, end):
+            self.board.set_position(
+                lst_sum(start, [0, end[1] - start[1]]),
+                ""
+            )
+        self.board.move_piece(start, end)
+        # Promoción de peón y variable en_passant
+        if self.board.is_pawn(end):
+            if abs(start[0] - end[0]) == 2:
+                self.en_passant = start[1]
+            if end[0] in [0, 7]:
+                self.board.set_position(
+                    end, "{}Q".format(next_move_color)
+                )
+        self.color = next_move_color
+        self.round += 1
+        self.check_endgame()
+        vals.update(
+            {
+                "check": self.check,
+                "check_mate": self.check_mate,
+                "stalemate": self.stalemate,
+            }
+        )
+        self.log_move(vals)
+        return vals
+
+    def check_endgame(self):
+        self.check = self.is_check([0, 0], [0, 0])
+        if not self.get_all_moves():
+            self.end_game = True
+            if self.check:
+                self.check_mate = True
+            else:
+                self.stalemate = True
+
+    def log_move(self, vals):
+        start = vals.get("start_square")
+        end = vals.get("end_square")
+        count = vals.get("round")
+        moved_piece = vals.get("moved_piece")
+        eaten_piece = vals.get("eaten_piece")
+        log = "{}. {}{}{} -> {}{}".format(
+            count,
+            moved_piece[1],
+            num2let[start[1]],
+            8 - start[0],
+            num2let[end[1]],
+            8 - end[0],
+        )
+        if eaten_piece:
+            eaten_piece = "x" + eaten_piece[1]
+        vals.update({"log": log + eaten_piece})
+        self.logs.append(vals)
