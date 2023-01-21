@@ -21,6 +21,7 @@ GREY = (32, 32, 32)
 GREY2 = (160, 160, 160)
 YELLOW = (255, 255, 102)
 BLUE = (0, 102, 255)
+BROWN = (125, 100, 75)
 
 
 def import_images():

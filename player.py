@@ -2,7 +2,11 @@
 Clase para la gestión de los Jugadores
 """
 
-from tools import lst_sum
+AI_dict = {
+    "human": "Humano",
+    "min_max": "Algoritmo Min Max",
+    "dummy": "Joe Bidden",
+}
 
 
 class Player:
@@ -12,7 +16,8 @@ class Player:
         self.color = color
         self.brain = brain
         self.won_pieces = []
-        self.display_name = "Blancas" if color == "w" else "Negras"
+        self.color_name = "Blancas" if color == "w" else "Negras"
+        self.display_brain = AI_dict[brain]
 
     def get_available_moves(self, position):
         # Movimientos disponibles para el peón seleccionado
@@ -29,6 +34,3 @@ class Player:
         elif self.board.is_king(position):
             return self.chess.get_king_moves(position)
         return []
-
-    def make_ai_move(self):
-        pass

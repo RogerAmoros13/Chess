@@ -7,7 +7,7 @@ from tools import *
 
 class Board:
     def __init__(self):
-        self.board = BOARD_BASIC
+        self.board = BOARD_QUEEN
         self.registry = []
         self.dims = 8
 
@@ -69,60 +69,68 @@ class Board:
     def set_position(self, pos, value):
         self.board[pos[0]][pos[1]] = value
 
-    def move_piece(self, pos1, pos2, register=True):
-        # Mover pieza de pos1 a pos2
-        piece1 = self.get_piece(pos1)
-        piece2 = self.get_piece(pos2)
-        self.set_position(pos1, "")
-        self.set_position(pos2, piece1)
-        vals = {
-            piece1: pos1,
-        }
-        if register:
-            if piece2:
-                vals.update({piece2: pos2})
-            self.registry.append(vals)
+    def move_piece(self, vals):
+        start = vals.get("start_square")
+        end = vals.get("end_square")
+        moved_piece = vals.get("moved_piece")
+        if vals["castling"]:
+            self.castling_move(vals["color"], vals["castling"])
+        else:
+            self.set_position(start, "")
+            self.set_position(end, moved_piece)
+            if vals["en_passant"]:
+                self.board.set_position(
+                    lst_sum(start, [0, end[1] - start[1]]),
+                    ""
+                )
+            elif vals["promotion"]:
+                self.set_position(end, "{}Q".format(vals["color"]))
 
-    def undo_move(self, square1=None, square2=None, castling=False):
-        if castling:
-            return True
-        piece1 = square1.get("piece")
-        pos1 = square1.get("position")
-        piece2 = square2.get("piece")
-        pos2 = square2.get("position")
-        self.set_position(pos1, piece1)
-        self.set_position(pos2, piece2)
+    def undo_move(self, vals):
+        start = vals.get("start_square")
+        end = vals.get("end_square")
+        moved_piece = vals.get("moved_piece")
+        if vals["castling"]:
+            self.undo_castling_move(vals["color"], vals["castling"])
+        else:
+            self.set_position(start, moved_piece)
+            if vals["en_passant"]:
+                self.board.set_position(
+                    lst_sum(start, [0, end[1] - start[1]]),
+                    vals["eaten_piece"]
+                )
+                self.set_position(end, "")
+            else:
+                self.set_position(end, vals["eaten_piece"])
 
     def get_copy(self):
         return self.board.copy()
 
     def castling_move(self, color, side):
         row = 7 if color == "w" else 0
-        king = self.get_piece([row, 4])
         if side == "short":
-            rook = self.get_piece([row, 7])
             self.set_position([row, 4], "")
-            self.set_position([row, 5], rook)
-            self.set_position([row, 6], king)
+            self.set_position([row, 5], "{}R".format(color))
+            self.set_position([row, 6], "{}K".format(color))
             self.set_position([row, 7], "")
-            self.registry.append(
-                {
-                    king: [row, 4],
-                    rook: [row, 7],
-                }
-            )
         else:
-            rook = self.get_piece([row, 0])
             self.set_position([row, 0], "")
-            self.set_position([row, 2], king)
-            self.set_position([row, 3], rook)
+            self.set_position([row, 2], "{}K".format(color))
+            self.set_position([row, 3], "{}R".format(color))
             self.set_position([row, 4], "")
-            self.registry.append(
-                {
-                    rook: [row, 0],
-                    king: [row, 4],
-                }
-            )
+
+    def undo_castling_move(self, color, side):
+        row = 7 if color == "w" else 0
+        if side == "short":
+            self.set_position([row, 4], "{}K".format(color))
+            self.set_position([row, 5], "")
+            self.set_position([row, 6], "")
+            self.set_position([row, 7], "{}R".format(color))
+        else:
+            self.set_position([row, 0], "{}R".format(color))
+            self.set_position([row, 2], "")
+            self.set_position([row, 3], "")
+            self.set_position([row, 4], "{}K".format(color))
 
     def draw_board(self, vals):
         screen = vals.get("screen")

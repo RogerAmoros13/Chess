@@ -17,7 +17,6 @@ class Chess:
         self.clock = pygame.time.Clock()
         self.surface.set_colorkey((0, 0, 0))
         self.surface.set_alpha(100)
-        self.leader = Leader(self.screen)
 
         # Data
         self.pieces = import_images()
@@ -28,6 +27,13 @@ class Chess:
             1: Player(self.chess, "b"),
         }
         self.count = 0
+
+        # Leader
+        self.leader = Leader(
+            self.screen,
+            self.players[0],
+            self.players[1],
+        )
 
         # Variables de estado
         self.mouse_pos = None
@@ -46,7 +52,7 @@ class Chess:
                 if event.type == pygame.QUIT:
                     running = False
 
-            self.screen.fill(BLACK)
+            self.screen.fill(GREY)
             self.surface.fill(BLACK)
             if not self.chess.check_mate:
                 self.event_manager()
@@ -86,6 +92,7 @@ class Chess:
             vals = self.chess.do_move(
                 self.start_square,
                 self.end_square,
+                True,
             )
             self.update_game_flags()
 
@@ -117,7 +124,7 @@ class Chess:
         if self.chess.check_mate:
             log_text = font_title.render(
                 "{} ganan!".format(
-                    self.old_player.display_name
+                    self.old_player.color_name
                 ),
                 True,
                 BLUE
@@ -129,10 +136,10 @@ class Chess:
         self.screen.blit(log_text, (230, 350))
 
     def update(self):
-        pygame.draw.rect(self.screen, GREY, (800, 0, 400, 800))
+        pygame.draw.rect(self.screen, BROWN, (800, 0, 400, 800))
         self.screen.blit(self.surface, (0, 0))
-        self.leader.draw_pieces(self.start_square, self.mouse_pos)
-        self.leader.draw_logs(self.board.registry)
+        # self.leader.draw_pieces(self.start_square, self.mouse_pos)
+        self.leader.draw(self.chess.logs)
         pygame.display.update()
         self.clock.tick(30)
         # time.sleep(.3)
