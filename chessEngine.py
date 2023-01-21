@@ -256,10 +256,20 @@ class ChessEngine:
         for i in range(self.board.dims):
             for j in range(self.board.dims):
                 if self.board.is_color([i, j], self.color):
-                    moves += self.get_available_moves([i, j])
-                    if check_one and moves:
+                    av_moves = self.get_available_moves([i, j])
+                    if check_one and av_moves:
                         return True
-        return False
+                    elif av_moves:
+                        for move in av_moves:
+                            moves.append(
+                                {
+                                    "start": [i, j],
+                                    "end": move,
+                                }
+                            )
+        if check_one:
+            return False
+        return moves
 
     def update_variables(self, color, en_passant):
         self.en_passant = en_passant
@@ -389,7 +399,7 @@ class ChessEngine:
                 8 - end[0],
             )
         if eaten_piece:
-            eaten_piece = "x" + eaten_piece[1]
+            log += "x" + eaten_piece[1]
         if vals["check"]:
             log += "+"
         if vals["check_mate"]:
@@ -397,6 +407,6 @@ class ChessEngine:
         if vals["stalemate"]:
             log += " 1/2 - 1/2"
             
-        vals.update({"log": log + eaten_piece})
+        vals.update({"log": log})
         self.logs.append(vals)
         return vals

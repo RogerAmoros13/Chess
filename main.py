@@ -1,6 +1,6 @@
 import pygame
 from tools import *
-from player import Player
+from player import *
 from board import Board
 from leader import Leader
 from chessEngine import ChessEngine
@@ -23,8 +23,8 @@ class Chess:
         self.board = Board()
         self.chess = ChessEngine(self.board)
         self.players = {
-            0: Player(self.chess, "w"),
-            1: Player(self.chess, "b"),
+            0: JoeBiden(self.chess, "w"),
+            1: Human(self.chess, "b"),
         }
         self.count = 0
 
@@ -73,7 +73,7 @@ class Chess:
                     )
                     if curr_pos == self.start_square:
                         self.start_square = None
-                    elif curr_pos in available_moves:
+                    elif curr_pos in available_moves and not self.current_player.is_ia:
                         self.end_square = curr_pos
                     elif not self.board.are_enemy_pieces(
                         self.start_square, curr_pos
@@ -88,15 +88,20 @@ class Chess:
 
     def event_manager(self):
         self.get_mouse_events()
+        if self.current_player.is_ia:
+            move = self.current_player.play()
+            if move:
+                self.start_square = move["start"]
+                self.end_square = move["end"]
         if self.end_square:
-            vals = self.chess.do_move(
+            self.chess.do_move(
                 self.start_square,
                 self.end_square,
                 True,
             )
             self.update_game_flags()
 
-    def update_game_flags(self, vals={}):
+    def update_game_flags(self):
         self.count += 1
         self.start_square = False
         self.end_square = False
@@ -141,7 +146,7 @@ class Chess:
         # self.leader.draw_pieces(self.start_square, self.mouse_pos)
         self.leader.draw(self.chess.logs)
         pygame.display.update()
-        self.clock.tick(30)
+        self.clock.tick(10)
         # time.sleep(.3)
 
 

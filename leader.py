@@ -32,12 +32,12 @@ class Leader:
 
     def draw_players(self):
         white_player = self.font_large.render(
-            self.playerW.display_brain, True, WHITE)
+            self.playerW.name, True, WHITE)
         self.screen.blit(white_player, (810, 10))
         vs = self.font_big.render("vs", True, GREY)
         self.screen.blit(vs, (985, 20))
         white_player = self.font_large.render(
-            self.playerB.display_brain, True, BLACK)
+            self.playerB.name, True, BLACK)
         self.screen.blit(white_player, (1020, 10))
 
     def draw_logs(self, logs):

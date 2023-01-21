@@ -7,7 +7,7 @@ from tools import *
 
 class Board:
     def __init__(self):
-        self.board = BOARD_QUEEN
+        self.board = BOARD_BASIC
         self.registry = []
         self.dims = 8
 
@@ -79,7 +79,7 @@ class Board:
             self.set_position(start, "")
             self.set_position(end, moved_piece)
             if vals["en_passant"]:
-                self.board.set_position(
+                self.set_position(
                     lst_sum(start, [0, end[1] - start[1]]),
                     ""
                 )
@@ -95,7 +95,7 @@ class Board:
         else:
             self.set_position(start, moved_piece)
             if vals["en_passant"]:
-                self.board.set_position(
+                self.set_position(
                     lst_sum(start, [0, end[1] - start[1]]),
                     vals["eaten_piece"]
                 )
