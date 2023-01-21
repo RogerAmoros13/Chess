@@ -8,6 +8,7 @@ else:
     bar = "/"
 
 PATH_TO_PIECES = os.getcwd() + bar + "files" + bar + "pieces"
+PATH_TO_ASSETS = os.getcwd() + bar + "files" + bar + "assets"
 
 # Parametros del display.
 SIZE = (1200, 800)
@@ -35,6 +36,17 @@ def import_images():
         file = pygame.transform.scale(file, (90, 90))
         piece_vals[name] = file
     return piece_vals
+
+def import_assets():
+    dir_list = os.listdir(PATH_TO_ASSETS)
+    assets_vals = {}
+    for asset in dir_list:
+        name = asset.split(".")[0]
+        final_path = PATH_TO_ASSETS + bar + asset
+        file = pygame.image.load(final_path)
+        file = pygame.transform.scale(file, (40, 40))
+        assets_vals[name] = file
+    return assets_vals
 
 
 def lst_sum(l1, l2):

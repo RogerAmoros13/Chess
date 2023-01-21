@@ -13,10 +13,12 @@ class Leader:
         self.font_tiny = pygame.font.SysFont("didot.ttc", 14)
         self.playerW = player1
         self.playerB = player2
+        self.assets = import_assets()
 
-    def draw(self, logs):
+    def draw(self, vals):
         self.draw_players()
-        self.draw_logs(logs)
+        self.draw_logs(vals)
+        self.draw_undo_button(vals)
 
     def draw_pieces(self, pos, pos2):
         if pos:
@@ -32,17 +34,18 @@ class Leader:
 
     def draw_players(self):
         white_player = self.font_large.render(
-            self.playerW.name, True, WHITE)
+            "Blancas: " + self.playerW.name, True, WHITE
+        )
         self.screen.blit(white_player, (810, 10))
-        vs = self.font_big.render("vs", True, GREY)
-        self.screen.blit(vs, (985, 20))
         white_player = self.font_large.render(
-            self.playerB.name, True, BLACK)
-        self.screen.blit(white_player, (1020, 10))
+            "Negras: " + self.playerB.name, True, BLACK
+        )
+        self.screen.blit(white_player, (810, 55))
 
-    def draw_logs(self, logs):
+    def draw_logs(self, vals):
         log_text = self.font_large.render("Logs", True, GREY)
         self.screen.blit(log_text, (810, 360))
+        logs = vals.get("logs")
         y = 410
         delay = 26
         start_iter = len(logs) - delay
@@ -60,3 +63,13 @@ class Leader:
             y += increment
             if y > 790:
                 break
+
+    def draw_undo_button(self, vals):
+        undo = vals.get("undo")
+        # text = self.font_medium.render("Undo", True, GREY)
+        if undo:
+            pygame.draw.rect(self.screen, GREEN, (815, 105, 40, 40), 0, 3)
+        else:
+            pygame.draw.rect(self.screen, GREY2, (815, 105, 40, 40), 0, 3)
+        self.screen.blit(self.assets["undo"], (815, 105))
+

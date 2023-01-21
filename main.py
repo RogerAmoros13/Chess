@@ -23,10 +23,9 @@ class Chess:
         self.board = Board()
         self.chess = ChessEngine(self.board)
         self.players = {
-            0: JoeBiden(self.chess, "w"),
+            0: Human(self.chess, "w"),
             1: Human(self.chess, "b"),
         }
-        self.count = 0
 
         # Leader
         self.leader = Leader(
@@ -54,19 +53,23 @@ class Chess:
 
             self.screen.fill(GREY)
             self.surface.fill(BLACK)
+            vals = {}
             if not self.chess.check_mate:
-                self.event_manager()
+                vals = self.event_manager()
             self.draw()
-            self.update()
+            self.update(vals)
 
     def get_mouse_events(self):
         mouse_buttons = pygame.mouse.get_pressed()
         pos = pygame.mouse.get_pos()
         curr_pos = [pos[1] // SQUARE_SIZE, pos[0] // SQUARE_SIZE]
         self.mouse_pos = curr_pos
-        if self.chess.is_inside_board(curr_pos):
-            if mouse_buttons[0] and not self.pressed:
-                self.pressed = True
+        vals = {}
+        if mouse_buttons[0] and not self.pressed:
+            self.pressed = True
+            if pos[0] > 815 and pos[0] < 855 and pos[1] > 105 and pos[1] < 145:
+                vals.update({"undo": True})
+            if self.chess.is_inside_board(curr_pos):
                 if self.start_square:
                     available_moves = self.chess.get_available_moves(
                         self.start_square
@@ -83,11 +86,12 @@ class Chess:
                         self.start_square = None
                 elif self.board.is_color(curr_pos, self.current_player.color):
                     self.start_square = curr_pos
-            elif not mouse_buttons[0] and self.pressed:
-                self.pressed = False
+        elif not mouse_buttons[0] and self.pressed:
+            self.pressed = False
+        return vals
 
     def event_manager(self):
-        self.get_mouse_events()
+        vals = self.get_mouse_events()
         if self.current_player.is_ia:
             move = self.current_player.play()
             if move:
@@ -100,16 +104,16 @@ class Chess:
                 True,
             )
             self.update_game_flags()
+        if vals.get("undo"):
+            self.chess.undo_move()
+            self.update_game_flags()
+        return vals
 
     def update_game_flags(self):
-        self.count += 1
         self.start_square = False
         self.end_square = False
-        self.old_player = self.current_player
-        self.current_player = self.get_current_player()
-
-    def get_current_player(self):
-        return self.players.get(self.count % 2)
+        self.old_player = self.players.get(self.chess.round % 2)
+        self.current_player = self.players.get((self.chess.round + 1) % 2)
 
     def draw(self):
         self.board.draw_board(
@@ -140,11 +144,12 @@ class Chess:
             )
         self.screen.blit(log_text, (230, 350))
 
-    def update(self):
+    def update(self, vals):
+        vals.update({"logs": self.chess.logs})
         pygame.draw.rect(self.screen, BROWN, (800, 0, 400, 800))
         self.screen.blit(self.surface, (0, 0))
         # self.leader.draw_pieces(self.start_square, self.mouse_pos)
-        self.leader.draw(self.chess.logs)
+        self.leader.draw(vals)
         pygame.display.update()
         self.clock.tick(10)
         # time.sleep(.3)

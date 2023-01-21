@@ -305,7 +305,6 @@ class ChessEngine:
 
         """
 
-        next_move_color = "b" if self.color == "w" else "w"
         is_en_passant = False
         castle = ""
         is_promotion = False
@@ -351,7 +350,7 @@ class ChessEngine:
         )
         self.board.move_piece(vals)
         if real:
-            self.color = next_move_color
+            self.color = "b" if self.color == "w" else "w"
             self.round += 1
             vals.update(self.check_endgame(real))
             vals = self.log_move(vals)
@@ -378,6 +377,19 @@ class ChessEngine:
             "check_mate": check_mate,
             "stalemate": stalemate,
         }
+    
+    def undo_move(self):
+        if not len(self.logs):
+            return
+        vals = self.logs.pop(-1)
+        self.board.undo_move(vals)
+        self.round -= 1
+        self.color = "b" if self.color == "w" else "w"
+        if self.end_game:
+            self.end_game = False
+            self.check = False
+            self.check_mate = False
+            self.stalemate = False
 
     def log_move(self, vals):
         start = vals.get("start_square")
